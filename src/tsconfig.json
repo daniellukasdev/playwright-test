@@ -4,11 +4,12 @@
     "module": "commonjs",
     "moduleResolution": "Node",
     "sourceMap": true,
-    "outDir": "./src-out"
+    "outDir": "../src-out"
 },
   "exclude": [
     "./tests/",
     "./node_modules/",
-    "./dist/"
+    "./dist/",
+    "./src/"
   ]
 }
