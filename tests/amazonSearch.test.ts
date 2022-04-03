@@ -3,9 +3,9 @@ import { expect } from "chai";
 import { Browser, BrowserContext, chromium, Locator, Page } from "playwright";
 
 
-describe("amazonSearch tests", () => {
+describe("amazonSearch basic tests", () => {
     let browser: Browser, context: BrowserContext, page: Page;
-
+    
     beforeEach(async function() {
         this.timeout(35000);
         browser = await chromium.launch({
@@ -13,11 +13,11 @@ describe("amazonSearch tests", () => {
         });
         context = await browser.newContext();
         page = await context.newPage();
-    })
+    });
 
     afterEach(async function() {
         await browser.close();
-    })
+    });
 
     it("navigates to amazon.com", async () => {
         await page.goto("https://www.amazon.com/");
@@ -31,14 +31,49 @@ describe("amazonSearch tests", () => {
         await page.locator('[aria-label="Search"]').click();
         await page.locator('[aria-label="Search"]').fill("nvidia 3060");
        
-        const actulText: String = await page.inputValue('input#twotabsearchtextbox');
+        const actulText: string = await page.inputValue('input#twotabsearchtextbox');
         console.log("actualText", actulText)
         
         expect(actulText).to.equal("nvidia 3060");
     });
+});
 
-    // await Promise.all([
-    //     page.waitForNavigation(/*{ url: 'https://www.amazon.com/s?k=nvidia+3060&crid=21FUVI91FZNLT&sprefix=nvidia+3060%2Caps%2C83&ref=nb_sb_noss_1' }*/),
-    //     page.locator('input:has-text("Go")').click()
-    //   ]);
+describe("amazonSearch uery Tests", async () => {
+    let browser: Browser, context: BrowserContext, page: Page;
+    const queries: string[] = ["nvidia 3060", "nvidia 3070", "nvidia 3080"];
+    const searched: string[] = [];
+
+    beforeEach(async function() {
+        this.timeout(35000);
+        browser = await chromium.launch({
+            headless: false,
+        });
+        context = await browser.newContext();
+        page = await context.newPage();
+    });
+
+    afterEach(async function() {
+        await browser.close();
+    });
+
+    (async () => {
+        for (const query of queries) {
+           it(`Search for ${query}`, async () => {
+                await page.goto("https://www.amazon.com/");
+                console.log("query", query)
+                await page.waitForSelector('[aria-label="Search"]');
+                await page.locator('[aria-label="Search"]').click();
+                await page.locator('[aria-label="Search"]').fill(`${query}`);
+
+                await Promise.all([
+                    page.waitForNavigation(),
+                    page.locator('input:has-text("Go")').click()
+                ]);
+
+                await page.waitForSelector('[aria-label="Search"]');
+                const searchedText: string = await page.inputValue('[aria-label="Search"]');
+                expect(searchedText).to.equal(query);
+           });
+        }
+    })();
 });
